@@ -243,24 +243,6 @@
             color: #64748b;
             font-size: 0.875rem;
         }
-        
-        /* New styles for dimension lines and labels */
-        .dimension-line {
-            stroke-dasharray: 4, 2;
-        }
-        
-        .dimension-text {
-            font-size: 2.5px;
-            font-family: sans-serif;
-            text-anchor: middle;
-        }
-        
-        .circle-label {
-            font-size: 3px;
-            font-family: sans-serif;
-            text-anchor: start;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
@@ -334,30 +316,8 @@
         <div class="card">
             <div id="preview">
                 <svg id="profileSVG" width="100%" height="100%" viewBox="-100 -100 200 200" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Reference circles will be added programmatically -->
+                    <circle cx="0" cy="0" r="80" fill="none" stroke="#e2e8f0" stroke-width="0.5" />
                     <path id="profilePath" d="M0,0" fill="none" stroke="#2563eb" stroke-width="1" />
-                    
-                    <!-- Groups for circles -->
-                    <g id="meanCircleGroup"></g>
-                    <g id="outerCircleGroup"></g>
-                    <g id="innerCircleGroup"></g>
-                    
-                    <!-- Dimension lines and labels -->
-                    <g id="dimensionLines"></g>
-                    
-                    <!-- Legend -->
-                    <g id="legend" transform="translate(-95, -95)">
-                        <rect x="0" y="0" width="50" height="40" fill="white" stroke="#e2e8f0" stroke-width="0.5" rx="2" />
-                        
-                        <line x1="5" y1="10" x2="15" y2="10" stroke="#2563eb" stroke-width="1" />
-                        <text x="20" y="11" class="dimension-text" fill="#0f172a">P3G Profile</text>
-                        
-                        <line x1="5" y1="20" x2="15" y2="20" stroke="#10b981" stroke-width="0.5" />
-                        <text x="20" y="21" class="dimension-text" fill="#0f172a">Mean Circle (Dm)</text>
-                        
-                        <line x1="5" y1="30" x2="15" y2="30" stroke="#ef4444" stroke-width="0.5" />
-                        <text x="20" y="31" class="dimension-text" fill="#0f172a">Outer/Inner Circles</text>
-                    </g>
                 </svg>
             </div>
             
@@ -463,7 +423,7 @@
     </div>
     
     <footer>
-        V1.2
+        V1.1
     </footer>
 
     <script>
@@ -482,18 +442,10 @@
         const profilePath = document.getElementById('profilePath');
         const profileSVG = document.getElementById('profileSVG');
         const exportDXFButton = document.getElementById('exportDXF');
-        const meanCircleGroup = document.getElementById('meanCircleGroup');
-        const outerCircleGroup = document.getElementById('outerCircleGroup');
-        const innerCircleGroup = document.getElementById('innerCircleGroup');
-        const dimensionLines = document.getElementById('dimensionLines');
         
         // Event Listeners
         generateButton.addEventListener('click', generateProfile);
         exportDXFButton.addEventListener('click', exportDXF);
-        document.getElementById("profileForm").addEventListener("reset", function() {
-            // Wait for the form to reset and then regenerate the profile with default values
-            setTimeout(generateProfile, 50);
-        });
         
         // Initialize with default values
         generateProfile();
@@ -543,148 +495,12 @@
             const path = generateP3GPath(nominalDiameter, eccentricity, profileType);
             profilePath.setAttribute('d', path);
             
-            // Clear previous circles
-            meanCircleGroup.innerHTML = '';
-            outerCircleGroup.innerHTML = '';
-            innerCircleGroup.innerHTML = '';
-            dimensionLines.innerHTML = '';
-            
             // Adjust viewBox to properly display the profile
             const viewBoxSize = Math.max(outerCircle, outerCircle) + 20;
             profileSVG.setAttribute('viewBox', `-${viewBoxSize/2} -${viewBoxSize/2} ${viewBoxSize} ${viewBoxSize}`);
             
-            // Draw reference circles with dimensions
-            drawReferenceCircles(nominalDiameter, eccentricity);
-            
             // Enable export button
             exportDXFButton.disabled = false;
-        }
-        
-        // Function to draw reference circles with dimensions
-        function drawReferenceCircles(diameter, eccentricity) {
-            const meanRadius = diameter / 2;
-            const outerRadius = meanRadius + eccentricity;
-            const innerRadius = meanRadius - eccentricity;
-            
-            // Mean Circle (green)
-            const meanCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            meanCircle.setAttribute("cx", "0");
-            meanCircle.setAttribute("cy", "0");
-            meanCircle.setAttribute("r", meanRadius.toString());
-            meanCircle.setAttribute("fill", "none");
-            meanCircle.setAttribute("stroke", "#10b981");
-            meanCircle.setAttribute("stroke-width", "0.5");
-            meanCircleGroup.appendChild(meanCircle);
-            
-            // Outer Circle (red)
-            const outerCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            outerCircle.setAttribute("cx", "0");
-            outerCircle.setAttribute("cy", "0");
-            outerCircle.setAttribute("r", outerRadius.toString());
-            outerCircle.setAttribute("fill", "none");
-            outerCircle.setAttribute("stroke", "#ef4444");
-            outerCircle.setAttribute("stroke-width", "0.5");
-            outerCircleGroup.appendChild(outerCircle);
-            
-            // Inner Circle (red)
-            const innerCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            innerCircle.setAttribute("cx", "0");
-            innerCircle.setAttribute("cy", "0");
-            innerCircle.setAttribute("r", innerRadius.toString());
-            innerCircle.setAttribute("fill", "none");
-            innerCircle.setAttribute("stroke", "#ef4444");
-            innerCircle.setAttribute("stroke-width", "0.5");
-            innerCircleGroup.appendChild(innerCircle);
-            
-            // Add dimension lines and labels
-            addDimensionLine(0, 0, meanRadius, 45, `Dm = ${diameter.toFixed(1)} mm`, "#10b981");
-            addDimensionLine(0, 0, outerRadius, 0, `Do = ${(diameter + 2 * eccentricity).toFixed(1)} mm`, "#ef4444");
-            addDimensionLine(0, 0, innerRadius, -45, `Di = ${(diameter - 2 * eccentricity).toFixed(1)} mm`, "#ef4444");
-            
-            // Add eccentricity dimension
-            const eccPosition = meanRadius + eccentricity/2;
-            addDimensionLine(meanRadius, 90, outerRadius, 90, `e = ${eccentricity.toFixed(2)} mm`, "#6366f1", true);
-        }
-        
-        // Helper function to add dimension lines with labels
-        function addDimensionLine(start, startAngle, end, endAngle, label, color, isRadial = false) {
-            // Convert polar to cartesian coordinates
-            function polarToCartesian(radius, angleDeg) {
-                const angleRad = (angleDeg - 90) * Math.PI / 180.0;
-                return {
-                    x: radius * Math.cos(angleRad),
-                    y: radius * Math.sin(angleRad)
-                };
-            }
-            
-            if (isRadial) {
-                // For radial dimension (eccentricity)
-                const x1 = start;
-                const y1 = 0;
-                const x2 = end;
-                const y2 = 0;
-                
-                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                line.setAttribute("x1", x1.toString());
-                line.setAttribute("y1", y1.toString());
-                line.setAttribute("x2", x2.toString());
-                line.setAttribute("y2", y2.toString());
-                line.setAttribute("stroke", color);
-                line.setAttribute("stroke-width", "0.3");
-                line.setAttribute("class", "dimension-line");
-                dimensionLines.appendChild(line);
-                
-                // Add dimension arrows
-                addArrow(x1, y1, 1, 0, color);
-                addArrow(x2, y2, -1, 0, color);
-                
-                // Add label
-                const labelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                labelText.setAttribute("x", ((x1 + x2) / 2).toString());
-                labelText.setAttribute("y", (y1 - 3).toString());
-                labelText.setAttribute("class", "dimension-text");
-                labelText.setAttribute("fill", color);
-                labelText.textContent = label;
-                dimensionLines.appendChild(labelText);
-            } else {
-                // For diameter dimensions
-                const startPoint = polarToCartesian(start, startAngle);
-                const endPoint = polarToCartesian(end, endAngle);
-                
-                // Draw line from center to the circle
-                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                line.setAttribute("x1", "0");
-                line.setAttribute("y1", "0");
-                line.setAttribute("x2", endPoint.x.toString());
-                line.setAttribute("y2", endPoint.y.toString());
-                line.setAttribute("stroke", color);
-                line.setAttribute("stroke-width", "0.3");
-                line.setAttribute("class", "dimension-line");
-                dimensionLines.appendChild(line);
-                
-                // Add label at the end of the line
-                const extension = 5; // Extension beyond circle
-                const labelX = endPoint.x * (1 + extension / end);
-                const labelY = endPoint.y * (1 + extension / end);
-                
-                const labelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                labelText.setAttribute("x", labelX.toString());
-                labelText.setAttribute("y", labelY.toString());
-                labelText.setAttribute("class", "dimension-text");
-                labelText.setAttribute("fill", color);
-                labelText.textContent = label;
-                dimensionLines.appendChild(labelText);
-            }
-        }
-        
-        // Helper function to add arrowheads
-        function addArrow(x, y, dirX, dirY, color) {
-            const arrowSize = 1;
-            
-            const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            arrow.setAttribute("d", `M${x},${y} L${x + dirX * arrowSize},${y + dirY * arrowSize - arrowSize/2} L${x + dirX * arrowSize},${y + dirY * arrowSize + arrowSize/2} Z`);
-            arrow.setAttribute("fill", color);
-            dimensionLines.appendChild(arrow);
         }
         
         // Generate the SVG path for a P3G profile
@@ -737,4 +553,108 @@
                 // P3G profile formula based on DIN 32711
                 let r;
                 if (type === 'internal') {
-                    //
+                    // Internal profile (female)
+                    r = radius + e * Math.cos(3 * angle);
+                } else {
+                    // External profile (male)
+                    r = radius - e * Math.cos(3 * angle);
+                }
+                
+                const x = r * Math.cos(angle);
+                const y = r * Math.sin(angle);
+                
+                points.push([x, y]);
+            }
+            
+            return points;
+        }
+        
+        // Custom DXF generator implementation
+        function createDXF(points) {
+            // DXF header
+            let dxf = '0\nSECTION\n';
+            dxf += '2\nHEADER\n';
+            dxf += '0\nENDSEC\n';
+            
+            // Tables section (containing layer definition)
+            dxf += '0\nSECTION\n';
+            dxf += '2\nTABLES\n';
+            
+            // Layer table
+            dxf += '0\nTABLE\n';
+            dxf += '2\nLAYER\n';
+            dxf += '0\nLAYER\n';
+            dxf += '2\nP3G_Profile\n';  // Layer name
+            dxf += '70\n0\n';
+            dxf += '62\n5\n';  // Color: blue
+            dxf += '6\nCONTINUOUS\n';  // Linetype
+            dxf += '0\nENDTAB\n';
+            
+            dxf += '0\nENDSEC\n';
+            
+            // Entities section (containing the polyline)
+            dxf += '0\nSECTION\n';
+            dxf += '2\nENTITIES\n';
+            
+            // POLYLINE entity
+            dxf += '0\nPOLYLINE\n';
+            dxf += '8\nP3G_Profile\n';  // Layer name
+            dxf += '66\n1\n';  // Vertices follow flag
+            dxf += '70\n1\n';  // Closed polyline flag
+            
+            // Add vertices
+            for (let i = 0; i < points.length; i++) {
+                dxf += '0\nVERTEX\n';
+                dxf += '8\nP3G_Profile\n';
+                dxf += '10\n' + points[i][0].toFixed(6) + '\n';  // X
+                dxf += '20\n' + points[i][1].toFixed(6) + '\n';  // Y
+                dxf += '30\n0.0\n';  // Z
+            }
+            
+            // End of polyline
+            dxf += '0\nSEQEND\n';
+            
+            // End of entities
+            dxf += '0\nENDSEC\n';
+            
+            // EOF
+            dxf += '0\nEOF';
+            
+            return dxf;
+        }
+        
+        // Function to export the profile in DXF format
+        function exportDXF() {
+            try {
+                const nominalDiameter = parseFloat(diameterInput.value);
+                const eccentricity = parseFloat(eccentricityInput.value);
+                const profileType = profileTypeSelect.value;
+                
+                // Calculate the profile points
+                const points = calculateP3GPoints(nominalDiameter, eccentricity, profileType);
+                
+                // Generate the DXF content using our custom function
+                const dxfString = createDXF(points);
+                
+                // Create a file from the DXF string
+                const blob = new Blob([dxfString], { type: 'application/dxf' });
+                
+                // Create a download link
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `P3G_${profileType}_D${nominalDiameter}_e${eccentricity}.dxf`;
+                
+                // Trigger download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                console.log("DXF export completed successfully");
+            } catch (error) {
+                console.error('Error generating DXF:', error);
+                alert('Error generating DXF file. See console for details.');
+            }
+        }
+    </script>
+</body>
+</html>
