@@ -158,7 +158,7 @@
         
         #exportOptions {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
             margin-top: 16px;
         }
@@ -314,15 +314,6 @@
             </div>
             
             <div id="exportOptions">
-                <div>
-                    <label for="exportScale">Export Scale:</label>
-                    <select id="exportScale">
-                        <option value="1:1">1:1 (Full Scale)</option>
-                        <option value="2:1">2:1 (Double Size)</option>
-                        <option value="1:2">1:2 (Half Size)</option>
-                    </select>
-                </div>
-                
                 <div class="button-group">
                     <button id="exportDXF" class="button">Export DXF</button>
                 </div>
@@ -574,8 +565,6 @@
             const nominalDiameter = parseFloat(diameterInput.value);
             const eccentricity = parseFloat(eccentricityInput.value);
             const profileType = profileTypeSelect.value;
-            const scale = document.getElementById('exportScale').value.split(':');
-            const scaleRatio = parseFloat(scale[0]) / parseFloat(scale[1]);
             
             try {
                 // Create a new DXF document
@@ -588,14 +577,11 @@
                 // Calculate the profile points
                 const points = calculateP3GPoints(nominalDiameter, eccentricity, profileType);
                 
-                // Apply scaling to all points
-                const scaledPoints = points.map(point => [point[0] * scaleRatio, point[1] * scaleRatio]);
-                
                 // Create a polyline entity for the profile
                 const polyline = new DxfWriter.Polyline();
                 
                 // Add all points to the polyline
-                scaledPoints.forEach(point => {
+                points.forEach(point => {
                     polyline.addVertex(point[0], point[1]);
                 });
                 
