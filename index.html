@@ -252,35 +252,6 @@
         footer a:hover {
             text-decoration: underline;
         }
-        
-        /* Legend styles for the SVG circles */
-        .legend {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 4px;
-            padding: 8px;
-            font-size: 12px;
-            border: 1px solid var(--border);
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 4px;
-        }
-        
-        .legend-color {
-            width: 16px;
-            height: 16px;
-            margin-right: 8px;
-            border: 1px solid #ccc;
-        }
-        
-        #preview {
-            position: relative;
-        }
     </style>
 </head>
 <body>
@@ -354,38 +325,9 @@
         <div class="card">
             <div id="preview">
                 <svg id="profileSVG" width="100%" height="100%" viewBox="-100 -100 200 200" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Inner Circle (Di) -->
-                    <circle id="innerCircleSVG" cx="0" cy="0" r="40" fill="none" stroke="#ffc0cb" stroke-width="0.7" stroke-dasharray="3,2" />
-                    
-                    <!-- Mean Circle (Dm) -->
-                    <circle id="meanCircleSVG" cx="0" cy="0" r="50" fill="none" stroke="#4682b4" stroke-width="0.7" stroke-dasharray="3,2" />
-                    
-                    <!-- Outer Circle (Do) -->
-                    <circle id="outerCircleSVG" cx="0" cy="0" r="60" fill="none" stroke="#90ee90" stroke-width="0.7" stroke-dasharray="3,2" />
-                    
-                    <!-- Profile Path -->
-                    <path id="profilePath" d="M0,0" fill="none" stroke="#2563eb" stroke-width="1.5" />
+                    <circle cx="0" cy="0" r="80" fill="none" stroke="#e2e8f0" stroke-width="0.5" />
+                    <path id="profilePath" d="M0,0" fill="none" stroke="#2563eb" stroke-width="1" />
                 </svg>
-                
-                <!-- Legend for the circles -->
-                <div class="legend">
-                    <div class="legend-item">
-                        <div class="legend-color" style="background-color: #2563eb;"></div>
-                        <span>P3G Profile</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background-color: #4682b4;"></div>
-                        <span>Mean Circle (Dm)</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background-color: #90ee90;"></div>
-                        <span>Outer Circle (Do)</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background-color: #ffc0cb;"></div>
-                        <span>Inner Circle (Di)</span>
-                    </div>
-                </div>
             </div>
             
             <div id="exportOptions">
@@ -510,11 +452,6 @@
         const profileSVG = document.getElementById('profileSVG');
         const exportDXFButton = document.getElementById('exportDXF');
         
-        // Circle SVG elements
-        const meanCircleSVG = document.getElementById('meanCircleSVG');
-        const outerCircleSVG = document.getElementById('outerCircleSVG');
-        const innerCircleSVG = document.getElementById('innerCircleSVG');
-        
         // Event Listeners
         generateButton.addEventListener('click', generateProfile);
         exportDXFButton.addEventListener('click', exportDXF);
@@ -570,15 +507,6 @@
             // Adjust viewBox to properly display the profile
             const viewBoxSize = Math.max(outerCircle, outerCircle) + 20;
             profileSVG.setAttribute('viewBox', `-${viewBoxSize/2} -${viewBoxSize/2} ${viewBoxSize} ${viewBoxSize}`);
-            
-            // Update the circles
-            const meanRadius = nominalDiameter / 2;
-            const innerRadius = (nominalDiameter - 2 * eccentricity) / 2;
-            const outerRadius = (nominalDiameter + 2 * eccentricity) / 2;
-            
-            meanCircleSVG.setAttribute('r', meanRadius);
-            innerCircleSVG.setAttribute('r', innerRadius);
-            outerCircleSVG.setAttribute('r', outerRadius);
             
             // Enable export button
             exportDXFButton.disabled = false;
