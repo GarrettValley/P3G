@@ -256,7 +256,7 @@
             <form id="profileForm">
                 <div class="form-group">
                     <label for="nominalDiameter">Nominal Diameter (D) [mm]</label>
-                    <input type="number" id="nominalDiameter" min="5" step="0.1" value="20" required>
+                    <input type="number" id="nominalDiameter" min="5" step="0.1" value="16" required>
                     <p class="help-text">Range: 5-500 mm</p>
                 </div>
                 
@@ -274,13 +274,13 @@
                         <option value="H7/h6">H7/h6 (Sliding Fit)</option>
                         <option value="H7/k6">H7/k6 (Transition Fit)</option>
                         <option value="H7/n6">H7/n6 (Interference Fit)</option>
-                        <option value="H7/p6">H7/p6 (Press Fit)</option>
+                        <option value="H7/p6" selected>H7/p6 (Press Fit)</option>
                     </select>
                 </div>
                 
                 <div class="form-group">
                     <label for="eccentricity">Eccentricity (e) [mm]</label>
-                    <input type="number" id="eccentricity" min="0.1" step="0.01" value="0.63" required>
+                    <input type="number" id="eccentricity" min="0.1" step="0.01" value="0.5" required>
                     <p class="help-text">Recommended: 0.8-5% of nominal diameter</p>
                 </div>
                 
