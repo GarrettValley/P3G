@@ -325,7 +325,6 @@
                 
                 <div class="button-group">
                     <button id="exportDXF" class="button">Export DXF</button>
-                    <button id="exportDWG" class="button">Export DWG</button>
                 </div>
             </div>
         </div>
@@ -419,10 +418,13 @@
                 <li><strong>Cold Forming:</strong> Economical for high-volume production of external profiles</li>
             </ul>
             <p>
-                The exported DXF or DWG files from this generator can be used directly with CNC machines or as reference for manufacturing these profiles.
+                The exported DXF files from this generator can be used directly with CNC machines or as reference for manufacturing these profiles.
             </p>
         </div>
     </div>
+
+    <!-- DXF.js library for DXF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dxf-writer/1.18.1/dxf-writer.min.js"></script>
 
     <script>
         // Constants for DIN 32711 calculations
@@ -440,12 +442,10 @@
         const profilePath = document.getElementById('profilePath');
         const profileSVG = document.getElementById('profileSVG');
         const exportDXFButton = document.getElementById('exportDXF');
-        const exportDWGButton = document.getElementById('exportDWG');
         
         // Event Listeners
         generateButton.addEventListener('click', generateProfile);
-        exportDXFButton.addEventListener('click', () => exportProfile('dxf'));
-        exportDWGButton.addEventListener('click', () => exportProfile('dwg'));
+        exportDXFButton.addEventListener('click', exportDXF);
         
         // Initialize with default values
         generateProfile();
@@ -499,9 +499,8 @@
             const viewBoxSize = Math.max(outerCircle, outerCircle) + 20;
             profileSVG.setAttribute('viewBox', `-${viewBoxSize/2} -${viewBoxSize/2} ${viewBoxSize} ${viewBoxSize}`);
             
-            // Enable export buttons
+            // Enable export button
             exportDXFButton.disabled = false;
-            exportDWGButton.disabled = false;
         }
         
         // Generate the SVG path for a P3G profile
@@ -541,27 +540,91 @@
             return path;
         }
         
-        // Function to export the profile in DXF or DWG format
-        function exportProfile(format) {
+        // Calculate points for the P3G profile
+        function calculateP3GPoints(diameter, eccentricity, type, steps = 360) {
+            const radius = diameter / 2;
+            const e = eccentricity;
+            const points = [];
+            
+            // Calculate points around the profile
+            for (let i = 0; i <= steps; i++) {
+                const angle = (i / steps) * 2 * Math.PI;
+                
+                // P3G profile formula based on DIN 32711
+                let r;
+                if (type === 'internal') {
+                    // Internal profile (female)
+                    r = radius + e * Math.cos(3 * angle);
+                } else {
+                    // External profile (male)
+                    r = radius - e * Math.cos(3 * angle);
+                }
+                
+                const x = r * Math.cos(angle);
+                const y = r * Math.sin(angle);
+                
+                points.push([x, y]);
+            }
+            
+            return points;
+        }
+        
+        // Function to export the profile in DXF format
+        function exportDXF() {
             const nominalDiameter = parseFloat(diameterInput.value);
             const eccentricity = parseFloat(eccentricityInput.value);
             const profileType = profileTypeSelect.value;
             const scale = document.getElementById('exportScale').value.split(':');
             const scaleRatio = parseFloat(scale[0]) / parseFloat(scale[1]);
             
-            // In a real application, this would generate the DXF/DWG file
-            // For this example, we'll just show an alert
-            alert(`${format.toUpperCase()} file would be generated for ${profileType} P3G profile with:\n` +
-                  `Diameter: ${nominalDiameter}mm\n` +
-                  `Eccentricity: ${eccentricity}mm\n` +
-                  `Scale: ${document.getElementById('exportScale').value}\n\n` +
-                  `In a real implementation, this would create and download a ${format.toUpperCase()} file.`);
-            
-            // In a real implementation, you would:
-            // 1. Generate the profile points as above
-            // 2. Create a DXF/DWG file using a library like dxf-writer for DXF
-            // 3. For DWG, you would need to use a server-side conversion as browser-based DWG generation is complex
-            // 4. Trigger a download of the generated file
+            try {
+                // Create a new DXF document
+                const d = new window.Drawing();
+                
+                // Add a layer for the profile
+                d.addLayer('P3G_Profile', Drawing.ACI.BLUE, 'CONTINUOUS');
+                d.setActiveLayer('P3G_Profile');
+                
+                // Calculate the profile points
+                const points = calculateP3GPoints(nominalDiameter, eccentricity, profileType);
+                
+                // Apply scaling to all points
+                const scaledPoints = points.map(point => [point[0] * scaleRatio, point[1] * scaleRatio]);
+                
+                // Create a polyline entity for the profile
+                const polyline = new Drawing.Polyline();
+                
+                // Add all points to the polyline
+                scaledPoints.forEach(point => {
+                    polyline.addVertex(point[0], point[1]);
+                });
+                
+                // Close the polyline
+                polyline.close();
+                
+                // Add the polyline to the drawing
+                d.drawEntity(polyline);
+                
+                // Generate the DXF content
+                const dxfString = d.toDxfString();
+                
+                // Create a file from the DXF string
+                const blob = new Blob([dxfString], { type: 'application/dxf' });
+                
+                // Create a download link
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `P3G_${profileType}_D${nominalDiameter}_e${eccentricity}.dxf`;
+                
+                // Trigger download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+            } catch (error) {
+                console.error('Error generating DXF:', error);
+                alert('Error generating DXF file. See console for details.');
+            }
         }
     </script>
 </body>
