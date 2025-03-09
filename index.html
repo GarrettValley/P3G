@@ -424,7 +424,7 @@
     </div>
 
     <!-- DXF.js library for DXF generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dxf-writer/1.18.1/dxf-writer.min.js"></script>
+    <script src="https://unpkg.com/dxf-writer@1.18.1/dist/dxf.js"></script>
 
     <script>
         // Constants for DIN 32711 calculations
@@ -579,11 +579,11 @@
             
             try {
                 // Create a new DXF document
-                const d = new window.Drawing();
+                const dxf = new DxfWriter();
                 
                 // Add a layer for the profile
-                d.addLayer('P3G_Profile', Drawing.ACI.BLUE, 'CONTINUOUS');
-                d.setActiveLayer('P3G_Profile');
+                dxf.addLayer('P3G_Profile', DxfWriter.ACI.BLUE, 'CONTINUOUS');
+                dxf.setActiveLayer('P3G_Profile');
                 
                 // Calculate the profile points
                 const points = calculateP3GPoints(nominalDiameter, eccentricity, profileType);
@@ -592,7 +592,7 @@
                 const scaledPoints = points.map(point => [point[0] * scaleRatio, point[1] * scaleRatio]);
                 
                 // Create a polyline entity for the profile
-                const polyline = new Drawing.Polyline();
+                const polyline = new DxfWriter.Polyline();
                 
                 // Add all points to the polyline
                 scaledPoints.forEach(point => {
@@ -603,10 +603,10 @@
                 polyline.close();
                 
                 // Add the polyline to the drawing
-                d.drawEntity(polyline);
+                dxf.drawEntity(polyline);
                 
                 // Generate the DXF content
-                const dxfString = d.toDxfString();
+                const dxfString = dxf.toDxfString();
                 
                 // Create a file from the DXF string
                 const blob = new Blob([dxfString], { type: 'application/dxf' });
