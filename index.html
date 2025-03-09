@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P3G Profile Generator - DIN 32711</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --background: #f8fafc;
+            --text: #0f172a;
+            --border: #e2e8f0;
+            --card: #ffffff;
+            --error: #ef4444;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        header {
+            margin-bottom: 32px;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        p.subtitle {
+            font-size: 1.125rem;
+            color: #64748b;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 32px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background-color: var(--card);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        
+        input[type="number"], select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.15s ease;
+        }
+        
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        input[type="number"].error, select.error {
+            border-color: var(--error);
+        }
+        
+        .error-message {
+            color: var(--error);
+            font-size: 0.875rem;
+            margin-top: 4px;
+        }
+        
+        .help-text {
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-top: 4px;
+        }
+        
+        .button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+        
+        .button:hover {
+            background-color: var(--primary-hover);
+        }
+        
+        .button:disabled {
+            background-color: #cbd5e1;
+            cursor: not-allowed;
+        }
+        
+        .button-secondary {
+            background-color: white;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        
+        .button-secondary:hover {
+            background-color: #f1f5f9;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 24px;
+        }
+        
+        #preview {
+            width: 100%;
+            height: 400px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background-color: white;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #exportOptions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+        }
+        
+        .dimension-info {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.875rem;
+        }
+        
+        table th, table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        table th {
+            font-weight: 500;
+            color: #64748b;
+        }
+        
+        .info-section {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .info-section h2 {
+            margin-bottom: 16px;
+            font-size: 1.5rem;
+        }
+        
+        .info-section h3 {
+            margin: 24px 0 12px;
+            font-size: 1.25rem;
+        }
+        
+        .info-section p {
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        
+        .formula {
+            background-color: #f8fafc;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 16px 0;
+            font-family: monospace;
+            overflow-x: auto;
+        }
+        
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+        }
+        
+        @media (max-width: 768px) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .info-card {
+            background-color: var(--card);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>P3G Profile Generator</h1>
+        <p class="subtitle">According to DIN 32711 Standard</p>
+    </header>
+    
+    <div class="container">
+        <div class="card">
+            <form id="profileForm">
+                <div class="form-group">
+                    <label for="nominalDiameter">Nominal Diameter (D) [mm]</label>
+                    <input type="number" id="nominalDiameter" min="5" step="0.1" value="20" required>
+                    <p class="help-text">Range: 5-500 mm</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="profileType">Profile Type</label>
+                    <select id="profileType">
+                        <option value="internal">Internal P3G (Female)</option>
+                        <option value="external">External P3G (Male)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="tolerance">Fit Tolerance</label>
+                    <select id="tolerance">
+                        <option value="H7/h6">H7/h6 (Sliding Fit)</option>
+                        <option value="H7/k6">H7/k6 (Transition Fit)</option>
+                        <option value="H7/n6">H7/n6 (Interference Fit)</option>
+                        <option value="H7/p6">H7/p6 (Press Fit)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eccentricity">Eccentricity (e) [mm]</label>
+                    <input type="number" id="eccentricity" min="0.1" step="0.01" value="0.63" required>
+                    <p class="help-text">Recommended: 0.8-5% of nominal diameter</p>
+                </div>
+                
+                <div class="dimension-info">
+                    <h3>Calculated Dimensions</h3>
+                    <table>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Value</th>
+                        </tr>
+                        <tr>
+                            <td>Mean Circle (Dm)</td>
+                            <td id="meanCircle">-</td>
+                        </tr>
+                        <tr>
+                            <td>Outer Circle (Do)</td>
+                            <td id="outerCircle">-</td>
+                        </tr>
+                        <tr>
+                            <td>Inner Circle (Di)</td>
+                            <td id="innerCircle">-</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" id="generateButton" class="button">Generate Profile</button>
+                    <button type="reset" class="button button-secondary">Reset</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="card">
+            <div id="preview">
+                <svg id="profileSVG" width="100%" height="100%" viewBox="-100 -100 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="0" cy="0" r="80" fill="none" stroke="#e2e8f0" stroke-width="1" />
+                    <path id="profilePath" d="M0,0" fill="none" stroke="#2563eb" stroke-width="2" />
+                </svg>
+            </div>
+            
+            <div id="exportOptions">
+                <div>
+                    <label for="exportScale">Export Scale:</label>
+                    <select id="exportScale">
+                        <option value="1:1">1:1 (Full Scale)</option>
+                        <option value="2:1">2:1 (Double Size)</option>
+                        <option value="1:2">1:2 (Half Size)</option>
+                    </select>
+                </div>
+                
+                <div class="button-group">
+                    <button id="exportDXF" class="button">Export DXF</button>
+                    <button id="exportDWG" class="button">Export DWG</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="info-section">
+        <div class="info-card">
+            <h2>What is a P3G Profile?</h2>
+            <p>
+                A P3G profile, also known as a polygon profile with three rounded corners, is a standardized non-circular coupling element defined by the German DIN 32711 standard. These profiles are commonly used in mechanical engineering for torque transmission between shafts and hubs without using traditional keys or splines.
+            </p>
+            <p>
+                P3G profiles offer several advantages over conventional keyed connections:
+            </p>
+            <ul style="margin-left: 20px; margin-bottom: 16px; line-height: 1.6;">
+                <li>Higher torque capacity for the same diameter</li>
+                <li>Excellent centering capabilities</li>
+                <li>Reduced stress concentration</li>
+                <li>Self-centering properties</li>
+                <li>Even distribution of load around the circumference</li>
+                <li>Ability to transmit both static and dynamic loads</li>
+            </ul>
+            <p>
+                Common applications include machine tools, automotive drivelines, precision mechanical components, and various power transmission systems where reliability and precision are critical.
+            </p>
+        </div>
+        
+        <div class="two-col">
+            <div class="info-card">
+                <h3>P3G Profile Calculation</h3>
+                <p>
+                    The P3G profile is mathematically defined as an epitrochoid with three lobes. According to DIN 32711, the profile curve is calculated using polar coordinates where:
+                </p>
+                <div class="formula">
+                    For external profiles (male):<br>
+                    r(θ) = R - e × cos(3θ)<br><br>
+                    
+                    For internal profiles (female):<br>
+                    r(θ) = R + e × cos(3θ)<br><br>
+                    
+                    Where:<br>
+                    r(θ) = radial distance from center at angle θ<br>
+                    R = nominal radius (D/2)<br>
+                    e = eccentricity<br>
+                    θ = polar angle (0 to 2π)
+                </div>
+                <p>
+                    The eccentricity parameter (e) determines the "depth" of the profile and typically ranges from 0.8% to 5% of the nominal diameter for most applications.
+                </p>
+            </div>
+            
+            <div class="info-card">
+                <h3>DIN 32711 Standard</h3>
+                <p>
+                    The DIN 32711 is a German industrial standard that defines the geometric parameters, dimensional tolerances, and fit classifications for P3G profiles. It provides guidelines for:
+                </p>
+                <ul style="margin-left: 20px; margin-bottom: 16px; line-height: 1.6;">
+                    <li>Nominal diameter ranges</li>
+                    <li>Recommended eccentricity values</li>
+                    <li>Tolerance classes (H7/h6, H7/k6, etc.)</li>
+                    <li>Surface finish requirements</li>
+                    <li>Manufacturing methods</li>
+                </ul>
+                <p>
+                    The standard ensures interchangeability and compatibility between components manufactured by different suppliers.
+                </p>
+                <h3>Design Considerations</h3>
+                <p>
+                    When designing with P3G profiles, consider the following factors:
+                </p>
+                <ul style="margin-left: 20px; margin-bottom: 16px; line-height: 1.6;">
+                    <li>Material strength of both shaft and hub</li>
+                    <li>Fit class based on application requirements</li>
+                    <li>Appropriate eccentricity for the torque requirements</li>
+                    <li>Manufacturing method (grinding, broaching, wire EDM, etc.)</li>
+                    <li>Surface hardness requirements for wear resistance</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="info-card">
+            <h3>Manufacturing Methods</h3>
+            <p>
+                P3G profiles can be manufactured using various methods depending on the material, size, and precision requirements:
+            </p>
+            <ul style="margin-left: 20px; margin-bottom: 16px; line-height: 1.6;">
+                <li><strong>Wire EDM (Electrical Discharge Machining):</strong> High precision method suitable for hardened materials</li>
+                <li><strong>Broaching:</strong> Efficient for mass production of internal profiles</li>
+                <li><strong>Profile Grinding:</strong> Provides excellent surface finish for high-performance applications</li>
+                <li><strong>CNC Milling:</strong> Versatile method for prototype or small batch production</li>
+                <li><strong>Cold Forming:</strong> Economical for high-volume production of external profiles</li>
+            </ul>
+            <p>
+                The exported DXF or DWG files from this generator can be used directly with CNC machines or as reference for manufacturing these profiles.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Constants for DIN 32711 calculations
+        const P3G_CONSTANT = 0.25;  // Constant for P3G profile
+        
+        // DOM Elements
+        const diameterInput = document.getElementById('nominalDiameter');
+        const eccentricityInput = document.getElementById('eccentricity');
+        const profileTypeSelect = document.getElementById('profileType');
+        const toleranceSelect = document.getElementById('tolerance');
+        const generateButton = document.getElementById('generateButton');
+        const meanCircleOutput = document.getElementById('meanCircle');
+        const outerCircleOutput = document.getElementById('outerCircle');
+        const innerCircleOutput = document.getElementById('innerCircle');
+        const profilePath = document.getElementById('profilePath');
+        const profileSVG = document.getElementById('profileSVG');
+        const exportDXFButton = document.getElementById('exportDXF');
+        const exportDWGButton = document.getElementById('exportDWG');
+        
+        // Event Listeners
+        generateButton.addEventListener('click', generateProfile);
+        exportDXFButton.addEventListener('click', () => exportProfile('dxf'));
+        exportDWGButton.addEventListener('click', () => exportProfile('dwg'));
+        
+        // Initialize with default values
+        generateProfile();
+        
+        // Main function to generate the P3G profile
+        function generateProfile() {
+            const nominalDiameter = parseFloat(diameterInput.value);
+            const eccentricity = parseFloat(eccentricityInput.value);
+            const profileType = profileTypeSelect.value;
+            
+            if (isNaN(nominalDiameter) || isNaN(eccentricity)) {
+                alert('Please enter valid numerical values');
+                return;
+            }
+            
+            // Validate inputs
+            if (nominalDiameter < 5 || nominalDiameter > 500) {
+                alert('Nominal diameter must be between 5mm and 500mm');
+                return;
+            }
+            
+            const recommendedEccMin = 0.008 * nominalDiameter;
+            const recommendedEccMax = 0.05 * nominalDiameter;
+            
+            if (eccentricity < 0.1) {
+                alert('Eccentricity must be at least 0.1mm');
+                return;
+            }
+            
+            if (eccentricity < recommendedEccMin || eccentricity > recommendedEccMax) {
+                if (!confirm(`The eccentricity value is outside the recommended range (${recommendedEccMin.toFixed(2)}mm - ${recommendedEccMax.toFixed(2)}mm). Continue anyway?`)) {
+                    return;
+                }
+            }
+            
+            // Calculate dimensions according to DIN 32711
+            const meanCircle = nominalDiameter;
+            const innerCircle = nominalDiameter - 2 * eccentricity;
+            const outerCircle = nominalDiameter + 2 * eccentricity;
+            
+            // Update the information display
+            meanCircleOutput.textContent = meanCircle.toFixed(3) + ' mm';
+            outerCircleOutput.textContent = outerCircle.toFixed(3) + ' mm';
+            innerCircleOutput.textContent = innerCircle.toFixed(3) + ' mm';
+            
+            // Generate the path for the P3G profile
+            const path = generateP3GPath(nominalDiameter, eccentricity, profileType);
+            profilePath.setAttribute('d', path);
+            
+            // Adjust viewBox to properly display the profile
+            const viewBoxSize = Math.max(outerCircle, outerCircle) + 20;
+            profileSVG.setAttribute('viewBox', `-${viewBoxSize/2} -${viewBoxSize/2} ${viewBoxSize} ${viewBoxSize}`);
+            
+            // Enable export buttons
+            exportDXFButton.disabled = false;
+            exportDWGButton.disabled = false;
+        }
+        
+        // Generate the SVG path for a P3G profile
+        function generateP3GPath(diameter, eccentricity, type) {
+            const radius = diameter / 2;
+            const e = eccentricity;
+            const points = [];
+            const steps = 360;
+            
+            // Calculate points around the profile
+            for (let i = 0; i <= steps; i++) {
+                const angle = (i / steps) * 2 * Math.PI;
+                
+                // P3G profile formula based on DIN 32711
+                let r;
+                if (type === 'internal') {
+                    // Internal profile (female)
+                    r = radius + e * Math.cos(3 * angle);
+                } else {
+                    // External profile (male)
+                    r = radius - e * Math.cos(3 * angle);
+                }
+                
+                const x = r * Math.cos(angle);
+                const y = r * Math.sin(angle);
+                
+                points.push([x, y]);
+            }
+            
+            // Create SVG path command
+            let path = `M ${points[0][0]},${points[0][1]}`;
+            for (let i = 1; i < points.length; i++) {
+                path += ` L ${points[i][0]},${points[i][1]}`;
+            }
+            path += ' Z';  // Close the path
+            
+            return path;
+        }
+        
+        // Function to export the profile in DXF or DWG format
+        function exportProfile(format) {
+            const nominalDiameter = parseFloat(diameterInput.value);
+            const eccentricity = parseFloat(eccentricityInput.value);
+            const profileType = profileTypeSelect.value;
+            const scale = document.getElementById('exportScale').value.split(':');
+            const scaleRatio = parseFloat(scale[0]) / parseFloat(scale[1]);
+            
+            // In a real application, this would generate the DXF/DWG file
+            // For this example, we'll just show an alert
+            alert(`${format.toUpperCase()} file would be generated for ${profileType} P3G profile with:\n` +
+                  `Diameter: ${nominalDiameter}mm\n` +
+                  `Eccentricity: ${eccentricity}mm\n` +
+                  `Scale: ${document.getElementById('exportScale').value}\n\n` +
+                  `In a real implementation, this would create and download a ${format.toUpperCase()} file.`);
+            
+            // In a real implementation, you would:
+            // 1. Generate the profile points as above
+            // 2. Create a DXF/DWG file using a library like dxf-writer for DXF
+            // 3. For DWG, you would need to use a server-side conversion as browser-based DWG generation is complex
+            // 4. Trigger a download of the generated file
+        }
+    </script>
+</body>
+</html>
